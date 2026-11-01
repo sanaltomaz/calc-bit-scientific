@@ -50,15 +50,15 @@ export default function App() {
     soundManager.setSoundEnabled(next);
   };
 
-  // Download calculadora.py
+  // Download cli.py
   const handleDownloadScript = () => {
     soundManager.playKeyClick('number');
-    const content = pythonSourceFiles['calculadora.py'];
+    const content = pythonSourceFiles['calc_bit/cli.py'];
     const blob = new Blob([content], { type: 'text/x-python;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'calculadora.py';
+    a.download = 'cli.py';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

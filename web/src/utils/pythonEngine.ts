@@ -102,33 +102,14 @@ export const getOperationDocstring = (op: OperationType): {
  * Gera os scripts Python completos para consulta, visualização e download
  */
 export const pythonSourceFiles = {
-  'calculadora.py': `"""
-Calculadora Básica em Python - Quatro Operações Fundamentais
+  'calc_bit/cli.py': `"""
+Módulo: calc_bit.cli
+Calculadora Interativa em Linha de Comando (CLI) em Python.
 Desenvolvida com boas práticas de tipagem, docstrings e tratamento de exceções.
 """
 
 import sys
-
-def somar(a: float, b: float) -> float:
-    """Retorna a soma aritmética entre dois números."""
-    return a + b
-
-def subtrair(a: float, b: float) -> float:
-    """Retorna a diferença entre dois números."""
-    return a - b
-
-def multiplicar(a: float, b: float) -> float:
-    """Retorna o produto da multiplicação entre dois números."""
-    return a * b
-
-def dividir(a: float, b: float) -> float:
-    """
-    Retorna o quociente da divisão de a por b.
-    Lança ZeroDivisionError se o divisor for zero.
-    """
-    if b == 0:
-        raise ZeroDivisionError("Erro: Não é possível dividir por zero!")
-    return a / b
+from calc_bit.operacoes import somar, subtrair, multiplicar, dividir
 
 def exibir_menu() -> None:
     """Exibe o menu de opções no terminal."""
@@ -191,8 +172,8 @@ if __name__ == "__main__":
     main()
 `,
 
-  'operacoes.py': `"""
-Módulo operacoes.py: Funções matemáticas fundamentais isoladas.
+  'calc_bit/operacoes.py': `"""
+Módulo calc_bit.operacoes: Funções matemáticas fundamentais isoladas.
 Permite importação em qualquer projeto ou script Python.
 """
 from typing import Union
@@ -221,20 +202,14 @@ def dividir(a: Numero, b: Numero) -> float:
     return float(a / b)
 `,
 
-  'test_calculadora.py': `"""
+  'tests/test_operacoes.py': `"""
 Suíte de Testes Unitários (unittest) para a Calculadora Python.
-Execução via: python -m unittest test_calculadora.py
+Execução via: python3 -m unittest discover -s tests -v
 """
 import unittest
+from calc_bit.operacoes import somar, subtrair, multiplicar, dividir
 
-def somar(a, b): return a + b
-def subtrair(a, b): return a - b
-def multiplicar(a, b): return a * b
-def dividir(a, b):
-    if b == 0: raise ZeroDivisionError("Divisão por zero")
-    return a / b
-
-class TestCalculadora(unittest.TestCase):
+class TesteOperacoesFundamentais(unittest.TestCase):
     def test_somar_positivos(self):
         self.assertEqual(somar(10, 5), 15)
         self.assertAlmostEqual(somar(0.1, 0.2), 0.3, places=7)

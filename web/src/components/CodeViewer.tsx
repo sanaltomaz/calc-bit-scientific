@@ -7,7 +7,7 @@ import { soundManager } from '../utils/audio';
 type FileKey = keyof typeof pythonSourceFiles;
 
 export const CodeViewer: React.FC = () => {
-  const [activeFile, setActiveFile] = useState<FileKey>('calculadora.py');
+  const [activeFile, setActiveFile] = useState<FileKey>('calc_bit/operacoes.py');
   const [copied, setCopied] = useState(false);
   const [testResults, setTestResults] = useState<UnitTestResult[] | null>(null);
   const [isRunningTests, setIsRunningTests] = useState(false);
