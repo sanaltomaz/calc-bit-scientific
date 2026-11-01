@@ -1,14 +1,14 @@
 """
-Módulo de Testes Unitários: test_calculadora.py
+Módulo de Testes Unitários: tests/test_operacoes.py
 Descrição: Suíte de testes automatizados utilizando a biblioteca padrão 'unittest'
 para validar as quatro operações matemáticas e o tratamento de exceções.
 
 Execução:
-    python3 -m unittest test_calculadora.py -v
+    python3 -m unittest discover -s tests -v
 """
 
 import unittest
-from operacoes import somar, subtrair, multiplicar, dividir
+from calc_bit.operacoes import somar, subtrair, multiplicar, dividir
 
 
 class TesteOperacoesFundamentais(unittest.TestCase):

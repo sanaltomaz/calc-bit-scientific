@@ -1,5 +1,5 @@
 """
-Módulo: operacoes.py
+Módulo: calc_bit.operacoes
 Descrição: Implementação das quatro operações matemáticas fundamentais em Python.
 Autor: Google AI Studio
 Licença: Apache-2.0

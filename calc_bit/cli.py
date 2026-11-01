@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Programa: calculadora.py
-Descrição: Calculadora Básica Interativa em Linha de Comando (CLI) em Python.
+Módulo: calc_bit.cli
+Descrição: Calculadora Interativa em Linha de Comando (CLI) em Python.
 Suporte: Quatro Operações Matemáticas Fundamentais (+, -, *, /)
 Autor: Google AI Studio
 Python: 3.8+
 
 Uso:
-    python3 calculadora.py
+    python3 main.py
 """
 
 import sys
-from operacoes import somar, subtrair, multiplicar, dividir
+from calc_bit.operacoes import somar, subtrair, multiplicar, dividir
 
 
 def exibir_cabecalho() -> None:
