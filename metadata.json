@@ -1,0 +1,6 @@
+{
+  "name": "Calculadora Python - 4 Operações Fundamentais",
+  "description": "Calculadora interativa moderna com suporte às quatro operações matemáticas fundamentais em Python, código fonte documentado, terminal interativo e exportação de script.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
