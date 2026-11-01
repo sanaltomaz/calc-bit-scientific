@@ -31,16 +31,3 @@ export interface CalculationRecord {
   pythonSnippet: string;
   expression: string;
 }
-
-export interface UnitTestResult {
-  name: string;
-  description: string;
-  status: 'passed' | 'failed' | 'pending';
-  expected: number | string;
-  actual: number | string;
-  codeSnippet: string;
-}
-
-export type ActiveTab = 'calculator' | 'terminal' | 'code' | 'guide' | 'docs';
-
-export type CalculatorTheme = 'dark' | 'idle' | 'classic';

@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  ActiveTab,
   OperationType,
   UnaryOperationType,
   ConstantType,
@@ -22,13 +21,8 @@ import {
 import { soundManager } from './utils/audio';
 import { Header } from './components/Header';
 import { PixelCalculator } from './components/PixelCalculator';
-import { PythonTerminal } from './components/PythonTerminal';
-import { CodeViewer } from './components/CodeViewer';
-import { OperationsGuide } from './components/OperationsGuide';
-import { ArchitectureDocs } from './components/ArchitectureDocs';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('calculator');
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   // Calculator State
@@ -38,9 +32,6 @@ export default function App() {
   const [waitingForOperand, setWaitingForOperand] = useState<boolean>(false);
   const [expression, setExpression] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
-
-  // Python Inspector State
-  const [lastOperation, setLastOperation] = useState<OperationType | UnaryOperationType | null>('add');
 
   // History State
   const [history, setHistory] = useState<CalculationRecord[]>([]);
@@ -136,7 +127,6 @@ export default function App() {
 
       const fnName = getFunctionName(op);
       const pythonSnippet = `${fnName}(${formatPythonNumber(x)})`;
-      setLastOperation(op);
 
       try {
         let res = 0;
@@ -225,7 +215,6 @@ export default function App() {
 
       setActiveOperator(nextOperator);
       setWaitingForOperand(true);
-      setLastOperation(nextOperator);
     },
     [currentValue, previousValue, activeOperator, waitingForOperand, executeCalculation]
   );
@@ -244,8 +233,6 @@ export default function App() {
     const fnName = getFunctionName(op);
 
     const { result, err } = executeCalculation(op, operandA, operandB);
-
-    setLastOperation(op);
 
     const pythonSnippet = `${fnName}(${formatPythonNumber(operandA)}, ${formatPythonNumber(operandB)})`;
 
@@ -339,9 +326,7 @@ export default function App() {
   const handleSelectRecord = (record: CalculationRecord) => {
     if (record.result !== null) {
       setCurrentValue(formatPythonNumber(record.result));
-      setLastOperation(record.operation);
       setExpression(record.expression);
-      setActiveTab('calculator');
     }
   };
 
@@ -354,8 +339,6 @@ export default function App() {
       ) {
         return;
       }
-
-      if (activeTab !== 'calculator') return;
 
       if (e.key >= '0' && e.key <= '9') {
         e.preventDefault();
@@ -395,53 +378,41 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeTab, handleDigit, handleOperator, handleEquals, handleBackspace, handleClear]);
+  }, [handleDigit, handleOperator, handleEquals, handleBackspace, handleClear]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
         onDownloadScript={handleDownloadScript}
         soundEnabled={soundEnabled}
         onToggleSound={handleToggleSound}
       />
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {activeTab === 'calculator' && (
-          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)]">
-            <PixelCalculator
-              currentValue={currentValue}
-              previousValue={previousValue}
-              activeOperator={activeOperator}
-              lastOperation={lastOperation}
-              expression={expression}
-              error={error}
-              onDigit={handleDigit}
-              onOperator={handleOperator}
-              onUnaryOperator={handleUnaryOperator}
-              onConstant={handleConstant}
-              onEquals={handleEquals}
-              onClear={handleClear}
-              onBackspace={handleBackspace}
-              onToggleSign={handleToggleSign}
-              history={history}
-              onSelectRecord={handleSelectRecord}
-            />
-          </div>
-        )}
-
-        {activeTab === 'terminal' && <PythonTerminal />}
-        {activeTab === 'code' && <CodeViewer />}
-        {activeTab === 'guide' && <OperationsGuide />}
-        {activeTab === 'docs' && <ArchitectureDocs />}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex items-center justify-center">
+        <PixelCalculator
+          currentValue={currentValue}
+          previousValue={previousValue}
+          activeOperator={activeOperator}
+          expression={expression}
+          error={error}
+          onDigit={handleDigit}
+          onOperator={handleOperator}
+          onUnaryOperator={handleUnaryOperator}
+          onConstant={handleConstant}
+          onEquals={handleEquals}
+          onClear={handleClear}
+          onBackspace={handleBackspace}
+          onToggleSign={handleToggleSign}
+          history={history}
+          onSelectRecord={handleSelectRecord}
+        />
       </main>
 
       <footer className="border-t-4 border-[#12111c] py-4 text-center text-xs text-[#7d799b] bg-[#141320] font-pixel">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div>CALC BIT SCIENTIFIC &middot; BÁSICA &amp; CIENTÍFICA EM PYTHON</div>
+          <div>CALC BIT &middot; CALCULADORA BÁSICA &amp; CIENTÍFICA</div>
           <div className="text-[#a5a1c2] font-arcade text-[10px]">
-            PEP 8 &middot; MATH MODULE &middot; SAFE EXCEPTIONS
+            PYTHON 3 &middot; 16-BIT EDITION
           </div>
         </div>
       </footer>
