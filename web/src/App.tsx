@@ -4,9 +4,16 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ActiveTab, OperationType, CalculationRecord } from './types/calculator';
+import {
+  ActiveTab,
+  OperationType,
+  UnaryOperationType,
+  ConstantType,
+  CalculationRecord,
+} from './types/calculator';
 import {
   pythonOperations,
+  PYTHON_CONSTANTS,
   getOperatorSymbol,
   getFunctionName,
   formatPythonNumber,
@@ -18,7 +25,6 @@ import { PixelCalculator } from './components/PixelCalculator';
 import { PythonTerminal } from './components/PythonTerminal';
 import { CodeViewer } from './components/CodeViewer';
 import { OperationsGuide } from './components/OperationsGuide';
-import { HistoryDrawer } from './components/HistoryDrawer';
 import { ArchitectureDocs } from './components/ArchitectureDocs';
 
 export default function App() {
@@ -32,13 +38,9 @@ export default function App() {
   const [waitingForOperand, setWaitingForOperand] = useState<boolean>(false);
   const [expression, setExpression] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
-  const [memoryValue, setMemoryValue] = useState<number>(0);
 
   // Python Inspector State
-  const [lastOperation, setLastOperation] = useState<OperationType | null>('add');
-  const [lastOperandA, setLastOperandA] = useState<number | null>(null);
-  const [lastOperandB, setLastOperandB] = useState<number | null>(null);
-  const [lastResult, setLastResult] = useState<number | null>(null);
+  const [lastOperation, setLastOperation] = useState<OperationType | UnaryOperationType | null>('add');
 
   // History State
   const [history, setHistory] = useState<CalculationRecord[]>([]);
@@ -50,15 +52,15 @@ export default function App() {
     soundManager.setSoundEnabled(next);
   };
 
-  // Download cli.py
+  // Download cientifica.py
   const handleDownloadScript = () => {
     soundManager.playKeyClick('number');
-    const content = pythonSourceFiles['calc_bit/cli.py'];
+    const content = pythonSourceFiles['calc_bit/cientifica.py'];
     const blob = new Blob([content], { type: 'text/x-python;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'cli.py';
+    a.download = 'cientifica.py';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -87,7 +89,6 @@ export default function App() {
         setCurrentValue(digit);
         setWaitingForOperand(false);
       } else {
-        // Prevent exceeding sensible display limits
         if (currentValue.length < 16) {
           setCurrentValue((prev) => prev + digit);
         }
@@ -96,7 +97,16 @@ export default function App() {
     [currentValue, waitingForOperand]
   );
 
-  // Execute binary operation
+  // Insert Mathematical Constant (pi or e)
+  const handleConstant = useCallback((constant: ConstantType) => {
+    soundManager.playKeyClick('number');
+    setError(null);
+    const val = constant === 'pi' ? PYTHON_CONSTANTS.PI : PYTHON_CONSTANTS.EULER;
+    setCurrentValue(Number(val.toFixed(8)).toString());
+    setWaitingForOperand(false);
+  }, []);
+
+  // Execute binary operation (basic + scientific 2-operand)
   const executeCalculation = useCallback(
     (op: OperationType, a: number, b: number): { result: number | null; err: string | null } => {
       try {
@@ -105,6 +115,9 @@ export default function App() {
         else if (op === 'subtract') res = pythonOperations.subtrair(a, b);
         else if (op === 'multiply') res = pythonOperations.multiplicar(a, b);
         else if (op === 'divide') res = pythonOperations.dividir(a, b);
+        else if (op === 'power') res = pythonOperations.potencia(a, b);
+        else if (op === 'modulo') res = pythonOperations.modulo(a, b);
+        else if (op === 'percent') res = pythonOperations.porcentagem(a, b);
 
         return { result: res, err: null };
       } catch (err: unknown) {
@@ -115,7 +128,71 @@ export default function App() {
     []
   );
 
-  // Handle Operator
+  // Execute unary scientific operation immediately on currentValue
+  const handleUnaryOperator = useCallback(
+    (op: UnaryOperationType) => {
+      const x = parseFloat(currentValue);
+      if (isNaN(x)) return;
+
+      const fnName = getFunctionName(op);
+      const pythonSnippet = `${fnName}(${formatPythonNumber(x)})`;
+      setLastOperation(op);
+
+      try {
+        let res = 0;
+        if (op === 'square') res = pythonOperations.quadrado(x);
+        else if (op === 'sqrt') res = pythonOperations.raiz_quadrada(x);
+        else if (op === 'factorial') res = pythonOperations.fatorial(x);
+        else if (op === 'sin') res = pythonOperations.seno(x);
+        else if (op === 'cos') res = pythonOperations.cosseno(x);
+        else if (op === 'tan') res = pythonOperations.tangente(x);
+        else if (op === 'log10') res = pythonOperations.log10(x);
+        else if (op === 'ln') res = pythonOperations.ln(x);
+
+        soundManager.playKeyClick('equals');
+        const formattedRes = formatPythonNumber(res);
+        setCurrentValue(formattedRes);
+        setExpression(`${pythonSnippet} =`);
+        setError(null);
+        setWaitingForOperand(true);
+
+        const newRecord: CalculationRecord = {
+          id: Math.random().toString(36).substring(2, 9),
+          timestamp: new Date(),
+          operandA: x,
+          operandB: null,
+          operation: op,
+          operatorSymbol: fnName,
+          result: res,
+          pythonSnippet: `${pythonSnippet} -> ${formattedRes}`,
+          expression: `${pythonSnippet} =`,
+        };
+        setHistory((prev) => [newRecord, ...prev]);
+      } catch (err: unknown) {
+        soundManager.playKeyClick('error');
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(msg);
+        setWaitingForOperand(true);
+
+        const newRecord: CalculationRecord = {
+          id: Math.random().toString(36).substring(2, 9),
+          timestamp: new Date(),
+          operandA: x,
+          operandB: null,
+          operation: op,
+          operatorSymbol: fnName,
+          result: null,
+          error: msg,
+          pythonSnippet,
+          expression: pythonSnippet,
+        };
+        setHistory((prev) => [newRecord, ...prev]);
+      }
+    },
+    [currentValue]
+  );
+
+  // Handle Binary Operator
   const handleOperator = useCallback(
     (nextOperator: OperationType) => {
       soundManager.playKeyClick('operator');
@@ -169,17 +246,13 @@ export default function App() {
     const { result, err } = executeCalculation(op, operandA, operandB);
 
     setLastOperation(op);
-    setLastOperandA(operandA);
-    setLastOperandB(operandB);
 
     const pythonSnippet = `${fnName}(${formatPythonNumber(operandA)}, ${formatPythonNumber(operandB)})`;
 
     if (err) {
       soundManager.playKeyClick('error');
-      setError('ZeroDivisionError: division by zero');
-      setLastResult(null);
+      setError(err);
 
-      // Record in history
       const newRecord: CalculationRecord = {
         id: Math.random().toString(36).substring(2, 9),
         timestamp: new Date(),
@@ -204,10 +277,8 @@ export default function App() {
       soundManager.playKeyClick('equals');
       const formattedRes = formatPythonNumber(result);
       setCurrentValue(formattedRes);
-      setLastResult(result);
       setExpression(`${formatPythonNumber(operandA)} ${opSymbol} ${formatPythonNumber(operandB)} =`);
 
-      // Record in history
       const newRecord: CalculationRecord = {
         id: Math.random().toString(36).substring(2, 9),
         timestamp: new Date(),
@@ -264,45 +335,11 @@ export default function App() {
     }
   }, [currentValue, error]);
 
-  // Percentage (%)
-  const handlePercent = useCallback(() => {
-    soundManager.playKeyClick('number');
-    const val = parseFloat(currentValue);
-    if (!isNaN(val)) {
-      const res = val / 100;
-      setCurrentValue(formatPythonNumber(res));
-      setWaitingForOperand(true);
-    }
-  }, [currentValue]);
-
-  // Memory functions
-  const handleMemoryClear = () => {
-    soundManager.playKeyClick('clear');
-    setMemoryValue(0);
-  };
-
-  const handleMemoryRecall = () => {
-    soundManager.playKeyClick('number');
-    setCurrentValue(formatPythonNumber(memoryValue));
-    setWaitingForOperand(true);
-  };
-
-  const handleMemoryAdd = () => {
-    soundManager.playKeyClick('operator');
-    const val = parseFloat(currentValue);
-    if (!isNaN(val)) {
-      setMemoryValue((prev) => prev + val);
-    }
-  };
-
   // Restore history record
   const handleSelectRecord = (record: CalculationRecord) => {
     if (record.result !== null) {
       setCurrentValue(formatPythonNumber(record.result));
       setLastOperation(record.operation);
-      setLastOperandA(record.operandA);
-      setLastOperandB(record.operandB);
-      setLastResult(record.result);
       setExpression(record.expression);
       setActiveTab('calculator');
     }
@@ -311,7 +348,6 @@ export default function App() {
   // Global Keyboard Navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Do not capture keyboard if user is typing in an input or textarea
       if (
         document.activeElement?.tagName === 'INPUT' ||
         document.activeElement?.tagName === 'TEXTAREA'
@@ -339,6 +375,12 @@ export default function App() {
       } else if (e.key === '/') {
         e.preventDefault();
         handleOperator('divide');
+      } else if (e.key === '^') {
+        e.preventDefault();
+        handleOperator('power');
+      } else if (e.key === '%') {
+        e.preventDefault();
+        handleOperator('modulo');
       } else if (e.key === 'Enter' || e.key === '=') {
         e.preventDefault();
         handleEquals();
@@ -355,24 +397,8 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeTab, handleDigit, handleOperator, handleEquals, handleBackspace, handleClear]);
 
-  // Compute live Python snippet for display
-  const getDisplayPythonSnippet = (): string => {
-    if (activeOperator && previousValue !== null) {
-      const fn = getFunctionName(activeOperator);
-      return `${fn}(${formatPythonNumber(previousValue)}, ${currentValue})`;
-    }
-    if (lastOperation && lastOperandA !== null && lastOperandB !== null) {
-      const fn = getFunctionName(lastOperation);
-      return `${fn}(${formatPythonNumber(lastOperandA)}, ${formatPythonNumber(lastOperandB)}) -> ${
-        lastResult !== null ? formatPythonNumber(lastResult) : 'erro'
-      }`;
-    }
-    return 'somar(a, b), subtrair(a, b), multiplicar(a, b), dividir(a, b)';
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      {/* Top Bar adhering to Top Bar Contract */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -381,19 +407,20 @@ export default function App() {
         onToggleSound={handleToggleSound}
       />
 
-      {/* Main Container */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* TAB 1: CALCULADORA VISUAL PIXEL ART 16-BIT */}
         {activeTab === 'calculator' && (
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)]">
             <PixelCalculator
               currentValue={currentValue}
               previousValue={previousValue}
               activeOperator={activeOperator}
+              lastOperation={lastOperation}
               expression={expression}
               error={error}
               onDigit={handleDigit}
               onOperator={handleOperator}
+              onUnaryOperator={handleUnaryOperator}
+              onConstant={handleConstant}
               onEquals={handleEquals}
               onClear={handleClear}
               onBackspace={handleBackspace}
@@ -404,27 +431,17 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 2: TERMINAL CLI PYTHON */}
         {activeTab === 'terminal' && <PythonTerminal />}
-
-        {/* TAB 3: CÓDIGO FONTE & TESTES UNITÁRIOS */}
         {activeTab === 'code' && <CodeViewer />}
-
-        {/* TAB 4: GUIA DAS 4 OPERAÇÕES */}
         {activeTab === 'guide' && <OperationsGuide />}
-
-        {/* TAB 5: ARQUITETURA & ONDE ESTÁ O PYTHON */}
         {activeTab === 'docs' && <ArchitectureDocs />}
       </main>
 
-      {/* Footer */}
       <footer className="border-t-4 border-[#12111c] py-4 text-center text-xs text-[#7d799b] bg-[#141320] font-pixel">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div>
-            CALC BIT &middot; 4 OPERAÇÕES BÁSICAS EM PYTHON
-          </div>
+          <div>CALC BIT SCIENTIFIC &middot; BÁSICA &amp; CIENTÍFICA EM PYTHON</div>
           <div className="text-[#a5a1c2] font-arcade text-[10px]">
-            PEP 8 &middot; ZERO DIVISION SAFE
+            PEP 8 &middot; MATH MODULE &middot; SAFE EXCEPTIONS
           </div>
         </div>
       </footer>

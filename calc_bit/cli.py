@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
 Módulo: calc_bit.cli
-Descrição: Calculadora Interativa em Linha de Comando (CLI) em Python.
-Suporte: Quatro Operações Matemáticas Fundamentais (+, -, *, /)
-Autor: Google AI Studio
+Descrição: Calculadora Interativa Básica e Científica em Linha de Comando (CLI) em Python.
+Autor: Google AI Studio / sanaltomaz
 Python: 3.8+
 
 Uso:
@@ -11,113 +10,186 @@ Uso:
 """
 
 import sys
-from calc_bit.operacoes import somar, subtrair, multiplicar, dividir
+from calc_bit.operacoes import dividir, multiplicar, somar, subtrair
+from calc_bit.cientifica import (
+    EULER,
+    PI,
+    cosseno,
+    fatorial,
+    ln,
+    log10,
+    modulo,
+    porcentagem,
+    potencia,
+    quadrado,
+    raiz_quadrada,
+    seno,
+    tangente,
+)
 
 
 def exibir_cabecalho() -> None:
     """Exibe o cabeçalho estilizado do programa."""
-    print("\n" + "=" * 46)
-    print("        CALCULADORA BÁSICA EM PYTHON          ")
-    print("      Quatro Operações Fundamentais          ")
-    print("=" * 46)
+    print("\n" + "=" * 54)
+    print("           CALC BIT SCIENTIFIC - PYTHON CLI           ")
+    print("      Operações Básicas e Científicas Integradas      ")
+    print("=" * 54)
 
 
 def exibir_menu() -> None:
     """Apresenta as opções de operação disponíveis para o usuário."""
-    print(" [1] Adição        ( + )")
-    print(" [2] Subtração     ( - )")
-    print(" [3] Multiplicação ( * )")
-    print(" [4] Divisão       ( / )")
-    print(" [5] Sair do programa")
-    print("-" * 46)
+    print(" --- OPERAÇÕES BÁSICAS (2 números) ---")
+    print("  [1] Adição          ( a + b )   [2] Subtração       ( a - b )")
+    print("  [3] Multiplicação   ( a * b )   [4] Divisão         ( a / b )")
+    print("\n --- OPERAÇÕES CIENTÍFICAS (2 números) ---")
+    print("  [5] Potência        ( a ^ b )   [6] Módulo / Resto  ( a % b )")
+    print("  [7] Porcentagem     ( b% de a )")
+    print("\n --- OPERAÇÕES CIENTÍFICAS (1 número) ---")
+    print("  [8] Quadrado        ( x² )      [9] Raiz Quadrada   ( √x )")
+    print(" [10] Fatorial        ( n! )     [11] Seno            ( sin x° )")
+    print(" [12] Cosseno         ( cos x° ) [13] Tangente        ( tan x° )")
+    print(" [14] Logaritmo 10    ( log x )  [15] Log Natural     ( ln x )")
+    print("-" * 54)
+    print(f"  Constantes: pi = {PI:.6f} | e = {EULER:.6f}")
+    print("  [0] Sair do programa")
+    print("-" * 54)
 
 
 def obter_numero(mensagem: str) -> float:
     """
-    Solicita um número ao usuário e valida se a entrada é válida.
-
-    Trata conversão de vírgula para ponto (padrão brasileiro/internacional)
-    e captura exceções ValueError para evitar que o programa quebre com texto inválido.
-
-    Parâmetros:
-        mensagem (str): O texto de orientação exibido no input.
-
-    Retorna:
-        float: O número validado digitado pelo usuário.
+    Solicita um número ao usuário (ou as constantes 'pi' / 'e') e valida a entrada.
     """
     while True:
         try:
-            entrada = input(mensagem).strip().replace(',', '.')
+            entrada = input(mensagem).strip().lower().replace(",", ".")
+            if entrada == "pi":
+                return PI
+            if entrada == "e":
+                return EULER
             return float(entrada)
         except ValueError:
-            print(" [!] Entrada inválida! Digite um número inteiro ou decimal válido.")
+            print(" [!] Entrada inválida! Digite um número válido (ou 'pi' / 'e').")
 
 
-def executar_calculo(opcao: str, num1: float, num2: float) -> None:
-    """
-    Executa a operação matemática correspondente à opção escolhida.
-
-    Parâmetros:
-        opcao (str): '1', '2', '3' ou '4'.
-        num1 (float): Primeiro operando.
-        num2 (float): Segundo operando.
-    """
+def executar_calculo_binario(opcao: str, num1: float, num2: float) -> None:
+    """Executa operações que recebem dois operandos (num1 e num2)."""
     try:
-        if opcao == '1':
+        if opcao == "1":
             resultado = somar(num1, num2)
-            simbolo = "+"
+            expressao = f"{num1} + {num2}"
             nome_op = "Adição"
-        elif opcao == '2':
+        elif opcao == "2":
             resultado = subtrair(num1, num2)
-            simbolo = "-"
+            expressao = f"{num1} - {num2}"
             nome_op = "Subtração"
-        elif opcao == '3':
+        elif opcao == "3":
             resultado = multiplicar(num1, num2)
-            simbolo = "*"
+            expressao = f"{num1} * {num2}"
             nome_op = "Multiplicação"
-        elif opcao == '4':
+        elif opcao == "4":
             resultado = dividir(num1, num2)
-            simbolo = "/"
+            expressao = f"{num1} / {num2}"
             nome_op = "Divisão"
+        elif opcao == "5":
+            resultado = potencia(num1, num2)
+            expressao = f"{num1} ^ {num2}"
+            nome_op = "Potenciação"
+        elif opcao == "6":
+            resultado = modulo(num1, num2)
+            expressao = f"{num1} mod {num2}"
+            nome_op = "Módulo (Resto)"
+        elif opcao == "7":
+            resultado = porcentagem(num1, num2)
+            expressao = f"{num2}% de {num1}"
+            nome_op = "Porcentagem"
         else:
-            print(" [!] Opção não reconhecida.")
             return
 
-        print("\n" + "-" * 46)
-        print(f" >>> Operação: {nome_op}")
-        print(f" >>> Expressão: {num1} {simbolo} {num2}")
+        print("\n" + "-" * 54)
+        print(f" >>> Operação : {nome_op}")
+        print(f" >>> Expressão: {expressao}")
         print(f" >>> RESULTADO: {resultado}")
-        print("-" * 46)
+        print("-" * 54)
 
-    except ZeroDivisionError as erro:
-        print(f"\n [ERRO MATEMÁTICO] {erro}")
+    except (ZeroDivisionError, ValueError) as erro:
+        print(f"\n [ERRO MATEMÁTICO] {erro}\n")
+
+
+def executar_calculo_unario(opcao: str, x: float) -> None:
+    """Executa operações científicas que recebem apenas um operando (x)."""
+    try:
+        if opcao == "8":
+            resultado = quadrado(x)
+            expressao = f"{x}²"
+            nome_op = "Quadrado"
+        elif opcao == "9":
+            resultado = raiz_quadrada(x)
+            expressao = f"√({x})"
+            nome_op = "Raiz Quadrada"
+        elif opcao == "10":
+            resultado = fatorial(x)
+            expressao = f"{int(x)}!"
+            nome_op = "Fatorial"
+        elif opcao == "11":
+            resultado = seno(x)
+            expressao = f"sin({x}°)"
+            nome_op = "Seno (Graus)"
+        elif opcao == "12":
+            resultado = cosseno(x)
+            expressao = f"cos({x}°)"
+            nome_op = "Cosseno (Graus)"
+        elif opcao == "13":
+            resultado = tangente(x)
+            expressao = f"tan({x}°)"
+            nome_op = "Tangente (Graus)"
+        elif opcao == "14":
+            resultado = log10(x)
+            expressao = f"log10({x})"
+            nome_op = "Logaritmo Base 10"
+        elif opcao == "15":
+            resultado = ln(x)
+            expressao = f"ln({x})"
+            nome_op = "Logaritmo Natural"
+        else:
+            return
+
+        print("\n" + "-" * 54)
+        print(f" >>> Operação : {nome_op}")
+        print(f" >>> Expressão: {expressao}")
+        print(f" >>> RESULTADO: {resultado}")
+        print("-" * 54)
+
+    except (ZeroDivisionError, ValueError) as erro:
+        print(f"\n [ERRO MATEMÁTICO] {erro}\n")
 
 
 def main() -> None:
-    """
-    Loop principal de execução do aplicativo.
-    Mantém a calculadora em funcionamento até que o usuário escolha sair.
-    """
+    """Loop principal de execução da calculadora."""
     exibir_cabecalho()
+
+    opcoes_binarias = {"1", "2", "3", "4", "5", "6", "7"}
+    opcoes_unarias = {"8", "9", "10", "11", "12", "13", "14", "15"}
 
     while True:
         exibir_menu()
-        opcao = input(" Escolha uma opção (1-5): ").strip()
+        opcao = input(" Escolha uma opção (0-15): ").strip()
 
-        if opcao == '5':
-            print("\n Encerrando a Calculadora Python. Até logo!\n")
+        if opcao == "0":
+            print("\n Encerrando a Calc Bit Scientific. Até logo!\n")
             sys.exit(0)
 
-        if opcao not in ('1', '2', '3', '4'):
-            print("\n [!] Opção inválida. Por favor, escolha um número de 1 a 5.\n")
-            continue
+        if opcao in opcoes_binarias:
+            print("\n --- Entrada de Dados (2 números) ---")
+            num1 = obter_numero(" Digite o 1º número: ")
+            num2 = obter_numero(" Digite o 2º número: ")
+            executar_calculo_binario(opcao, num1, num2)
+        elif opcao in opcoes_unarias:
+            print("\n --- Entrada de Dados (1 número) ---")
+            x = obter_numero(" Digite o valor (ou 'pi' / 'e'): ")
+            executar_calculo_unario(opcao, x)
+        else:
+            print("\n [!] Opção inválida. Escolha um número entre 0 e 15.\n")
 
-        print("\n --- Entrada de Dados ---")
-        num1 = obter_numero(" Digite o 1º número: ")
-        num2 = obter_numero(" Digite o 2º número: ")
 
-        executar_calculo(opcao, num1, num2)
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
