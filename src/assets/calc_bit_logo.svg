@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" shape-rendering="crispEdges">
+  <!-- Background Drop Shadow -->
+  <rect x="24" y="16" width="88" height="104" fill="#0c0b14" />
+  
+  <!-- Outer Chassis (Retro Indigo) -->
+  <rect x="20" y="12" width="88" height="104" fill="#2d2b42" />
+  <rect x="24" y="8" width="80" height="108" fill="#2d2b42" />
+  
+  <!-- Chassis Highlights / Stepped Bevel -->
+  <rect x="24" y="12" width="80" height="4" fill="#464264" />
+  <rect x="20" y="16" width="4" height="96" fill="#464264" />
+  <rect x="104" y="16" width="4" height="96" fill="#181724" />
+  <rect x="24" y="112" width="80" height="4" fill="#181724" />
+
+  <!-- Brand Dots -->
+  <rect x="30" y="18" width="4" height="4" fill="#e11d48" />
+  <rect x="36" y="18" width="4" height="4" fill="#fbbf24" />
+  <rect x="42" y="18" width="4" height="4" fill="#38bdf8" />
+
+  <!-- LCD Screen Outer Frame -->
+  <rect x="28" y="26" width="72" height="26" fill="#14131f" />
+  
+  <!-- LCD Screen Inner Glass (Retro Olive / Mint Green) -->
+  <rect x="32" y="28" width="64" height="22" fill="#9bbc0f" />
+  <rect x="34" y="30" width="60" height="18" fill="#8bac0f" />
+
+  <!-- LCD Text Pixels (Displaying '42') -->
+  <rect x="74" y="34" width="2" height="8" fill="#0f380f" />
+  <rect x="74" y="40" width="8" height="2" fill="#0f380f" />
+  <rect x="80" y="34" width="2" height="12" fill="#0f380f" />
+
+  <rect x="86" y="34" width="8" height="2" fill="#0f380f" />
+  <rect x="92" y="36" width="2" height="4" fill="#0f380f" />
+  <rect x="86" y="38" width="8" height="2" fill="#0f380f" />
+  <rect x="86" y="40" width="2" height="4" fill="#0f380f" />
+  <rect x="86" y="44" width="8" height="2" fill="#0f380f" />
+
+  <!-- Keypad Area Grid -->
+  <rect x="30" y="58" width="14" height="10" fill="#be123c" />
+  <rect x="30" y="66" width="14" height="2" fill="#881337" />
+  
+  <rect x="48" y="58" width="14" height="10" fill="#3f3c56" />
+  <rect x="48" y="66" width="14" height="2" fill="#242233" />
+  
+  <rect x="66" y="58" width="14" height="10" fill="#3f3c56" />
+  <rect x="66" y="66" width="14" height="2" fill="#242233" />
+  
+  <rect x="84" y="58" width="14" height="10" fill="#6366f1" />
+  <rect x="84" y="66" width="14" height="2" fill="#4338ca" />
+
+  <rect x="30" y="72" width="14" height="10" fill="#e2e0ed" />
+  <rect x="30" y="80" width="14" height="2" fill="#b0adb8" />
+  
+  <rect x="48" y="72" width="14" height="10" fill="#e2e0ed" />
+  <rect x="48" y="80" width="14" height="2" fill="#b0adb8" />
+  
+  <rect x="66" y="72" width="14" height="10" fill="#e2e0ed" />
+  <rect x="66" y="80" width="14" height="2" fill="#b0adb8" />
+  
+  <rect x="84" y="72" width="14" height="10" fill="#6366f1" />
+  <rect x="84" y="80" width="14" height="2" fill="#4338ca" />
+
+  <rect x="30" y="86" width="14" height="10" fill="#e2e0ed" />
+  <rect x="30" y="94" width="14" height="2" fill="#b0adb8" />
+  
+  <rect x="48" y="86" width="14" height="10" fill="#e2e0ed" />
+  <rect x="48" y="94" width="14" height="2" fill="#b0adb8" />
+  
+  <rect x="66" y="86" width="14" height="10" fill="#e2e0ed" />
+  <rect x="66" y="94" width="14" height="2" fill="#b0adb8" />
+  
+  <rect x="84" y="86" width="14" height="10" fill="#6366f1" />
+  <rect x="84" y="94" width="14" height="2" fill="#4338ca" />
+
+  <rect x="30" y="100" width="14" height="10" fill="#e2e0ed" />
+  <rect x="30" y="108" width="14" height="2" fill="#b0adb8" />
+  
+  <rect x="48" y="100" width="14" height="10" fill="#e2e0ed" />
+  <rect x="48" y="108" width="14" height="2" fill="#b0adb8" />
+  
+  <rect x="66" y="100" width="14" height="10" fill="#e2e0ed" />
+  <rect x="66" y="108" width="14" height="2" fill="#b0adb8" />
+  
+  <rect x="84" y="100" width="14" height="10" fill="#10b981" />
+  <rect x="84" y="108" width="14" height="2" fill="#047857" />
+</svg>

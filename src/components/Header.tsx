@@ -22,9 +22,11 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="flex items-center justify-between gap-8 px-6 py-3.5 border-b-4 border-[#12111c] bg-[#1d1b2b] sticky top-0 z-50">
       {/* Zone 1: Brand title, one line */}
       <div className="flex items-center gap-2.5 whitespace-nowrap shrink-0">
-        <div className="w-7 h-7 bg-[#fbbf24] border-2 border-black flex items-center justify-center text-black font-bold font-arcade text-[10px] shadow-[2px_2px_0px_0px_#000000]">
-          PY
-        </div>
+        <img
+          src="/calc_bit_logo.svg"
+          alt="Calc Bit Logo"
+          className="w-7 h-7 border-2 border-black rounded shadow-[2px_2px_0px_0px_#000000]"
+        />
         <span className="font-arcade text-xs sm:text-sm text-white tracking-wider whitespace-nowrap">
           CALC BIT
         </span>

@@ -1,4 +1,14 @@
-# Calc Bit - Calculadora Básica em Python
+# Calc Bit
+
+<img src="calc_bit_logo.svg" alt="Calc Bit Logo" width="96" />
+
+[![Python](https://img.shields.io/badge/Python-3.10-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+
+---
 
 Este projeto foi construído para demonstrar e ensinar o desenvolvimento de uma **calculadora básica em Python** que suporta as quatro operações matemáticas fundamentais:
 
