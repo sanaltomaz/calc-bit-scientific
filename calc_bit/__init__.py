@@ -19,6 +19,11 @@ from calc_bit.cientifica import (
     seno,
     tangente,
 )
+from calc_bit.passo_a_passo import (
+    EtapaResolucao,
+    RelatorioResolucao,
+    resolver_passo_a_passo,
+)
 
 __all__ = [
     "Numero",
@@ -39,4 +44,7 @@ __all__ = [
     "tangente",
     "log10",
     "ln",
+    "EtapaResolucao",
+    "RelatorioResolucao",
+    "resolver_passo_a_passo",
 ]

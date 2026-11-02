@@ -1,3 +1,5 @@
+export type ConsoleMode = 'calculator' | 'learning';
+
 export type OperationType =
   | 'add'
   | 'subtract'
@@ -30,4 +32,23 @@ export interface CalculationRecord {
   error?: string;
   pythonSnippet: string;
   expression: string;
+}
+
+export interface ResolutionStep {
+  ordem: number;
+  expressaoAntes: string;
+  operacaoAtual: string;
+  regraAplicada: string;
+  dicaPython: string;
+  resultadoParcial: number;
+  expressaoDepois: string;
+}
+
+export interface ResolutionReport {
+  expressaoOriginal: string;
+  resultadoFinal: number | null;
+  etapas: ResolutionStep[];
+  sucesso: boolean;
+  erro?: string;
+  explicacaoErro?: string;
 }

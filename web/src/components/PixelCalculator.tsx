@@ -23,6 +23,7 @@ interface PixelCalculatorProps {
   expression: string;
   error: string | null;
   onDigit: (digit: string) => void;
+  onParenthesis: (paren: '(' | ')') => void;
   onOperator: (op: OperationType) => void;
   onUnaryOperator: (op: UnaryOperationType) => void;
   onConstant: (constant: ConstantType) => void;
@@ -59,6 +60,7 @@ export const PixelCalculator: React.FC<PixelCalculatorProps> = ({
   expression,
   error,
   onDigit,
+  onParenthesis,
   onOperator,
   onUnaryOperator,
   onConstant,
@@ -225,44 +227,54 @@ export const PixelCalculator: React.FC<PixelCalculatorProps> = ({
             </div>
           </div>
 
-          {/* Conventional 4x5 Keypad Grid with 16-bit Pixel Buttons */}
+          {/* Conventional Keypad Grid with 16-bit Pixel Buttons & Parentheses */}
           <div className="grid grid-cols-4 gap-2.5 pt-1">
-            {/* Row 1: Clear, DEL, Sign, Divide */}
-            <button
-              onClick={onClear}
-              className="h-12 sm:h-14 bg-[#be123c] hover:bg-[#9f1239] text-[#ffe4e6] border-2 border-black rounded-lg font-arcade text-xs sm:text-sm pixel-btn-action flex flex-col items-center justify-center cursor-pointer"
-              title="Limpar tudo (Esc)"
-            >
-              <span>C</span>
-            </button>
+            {/* Row 1: Clear, DEL, (, ), Divide (5-col top bar inside col-span-4) */}
+            <div className="col-span-4 grid grid-cols-5 gap-2">
+              <button
+                onClick={onClear}
+                className="h-12 sm:h-14 bg-[#be123c] hover:bg-[#9f1239] text-[#ffe4e6] border-2 border-black rounded-lg font-arcade text-xs sm:text-sm pixel-btn-action flex flex-col items-center justify-center cursor-pointer"
+                title="Limpar tudo (Esc)"
+              >
+                <span>C</span>
+              </button>
 
-            <button
-              onClick={onBackspace}
-              className="h-12 sm:h-14 bg-[#3f3c56] hover:bg-[#343147] text-[#e2e0ed] border-2 border-black rounded-lg font-arcade text-xs sm:text-sm pixel-btn-action flex flex-col items-center justify-center cursor-pointer"
-              title="Apagar dígito"
-            >
-              <span>DEL</span>
-            </button>
+              <button
+                onClick={onBackspace}
+                className="h-12 sm:h-14 bg-[#3f3c56] hover:bg-[#343147] text-[#e2e0ed] border-2 border-black rounded-lg font-arcade text-[10px] sm:text-xs pixel-btn-action flex flex-col items-center justify-center cursor-pointer"
+                title="Apagar dígito"
+              >
+                <span>DEL</span>
+              </button>
 
-            <button
-              onClick={onToggleSign}
-              className="h-12 sm:h-14 bg-[#3f3c56] hover:bg-[#343147] text-[#e2e0ed] border-2 border-black rounded-lg font-arcade text-xs sm:text-sm pixel-btn-action flex flex-col items-center justify-center cursor-pointer"
-              title="Inverter sinal (±)"
-            >
-              <span>+/-</span>
-            </button>
+              <button
+                onClick={() => onParenthesis('(')}
+                className="h-12 sm:h-14 bg-[#3f3c56] hover:bg-[#343147] text-[#fbbf24] border-2 border-black rounded-lg font-arcade text-xs sm:text-sm pixel-btn-action flex flex-col items-center justify-center font-bold cursor-pointer"
+                title="Abrir parênteses ("
+              >
+                <span>(</span>
+              </button>
 
-            <button
-              onClick={() => onOperator('divide')}
-              className={`h-12 sm:h-14 border-2 border-black rounded-lg font-arcade text-sm sm:text-base pixel-btn-action flex items-center justify-center cursor-pointer ${
-                activeOperator === 'divide'
-                  ? 'bg-[#fbbf24] text-black font-bold'
-                  : 'bg-[#6366f1] hover:bg-[#4f46e5] text-white'
-              }`}
-              title="Divisão: dividir(a, b)"
-            >
-              /
-            </button>
+              <button
+                onClick={() => onParenthesis(')')}
+                className="h-12 sm:h-14 bg-[#3f3c56] hover:bg-[#343147] text-[#fbbf24] border-2 border-black rounded-lg font-arcade text-xs sm:text-sm pixel-btn-action flex flex-col items-center justify-center font-bold cursor-pointer"
+                title="Fechar parênteses )"
+              >
+                <span>)</span>
+              </button>
+
+              <button
+                onClick={() => onOperator('divide')}
+                className={`h-12 sm:h-14 border-2 border-black rounded-lg font-arcade text-sm sm:text-base pixel-btn-action flex items-center justify-center cursor-pointer ${
+                  activeOperator === 'divide'
+                    ? 'bg-[#fbbf24] text-black font-bold'
+                    : 'bg-[#6366f1] hover:bg-[#4f46e5] text-white'
+                }`}
+                title="Divisão: dividir(a, b)"
+              >
+                /
+              </button>
+            </div>
 
             {/* Row 2: 7, 8, 9, Multiply */}
             {['7', '8', '9'].map((digit) => (
@@ -333,10 +345,18 @@ export const PixelCalculator: React.FC<PixelCalculatorProps> = ({
               +
             </button>
 
-            {/* Row 5: 0 (col-span-2), Decimal, Equals */}
+            {/* Row 5: Sign (+/-), 0, Decimal, Equals */}
+            <button
+              onClick={onToggleSign}
+              className="h-12 sm:h-14 bg-[#3f3c56] hover:bg-[#343147] text-[#e2e0ed] border-2 border-black rounded-lg font-arcade text-xs sm:text-sm pixel-btn-action flex flex-col items-center justify-center cursor-pointer"
+              title="Inverter sinal (±)"
+            >
+              <span>+/-</span>
+            </button>
+
             <button
               onClick={() => onDigit('0')}
-              className="col-span-2 h-12 sm:h-14 bg-[#e2e0ed] hover:bg-[#d1cfe0] text-[#1e1b2e] border-2 border-black rounded-lg font-arcade text-base sm:text-lg pixel-btn-action flex items-center justify-center font-bold cursor-pointer"
+              className="h-12 sm:h-14 bg-[#e2e0ed] hover:bg-[#d1cfe0] text-[#1e1b2e] border-2 border-black rounded-lg font-arcade text-base sm:text-lg pixel-btn-action flex items-center justify-center font-bold cursor-pointer"
             >
               0
             </button>

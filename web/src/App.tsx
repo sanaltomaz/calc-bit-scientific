@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
+  ConsoleMode,
   OperationType,
   UnaryOperationType,
   ConstantType,
@@ -16,14 +17,17 @@ import {
   getOperatorSymbol,
   getFunctionName,
   formatPythonNumber,
+  resolverPassoAPasso,
   pythonSourceFiles,
 } from './utils/pythonEngine';
 import { soundManager } from './utils/audio';
 import { Header } from './components/Header';
 import { PixelCalculator } from './components/PixelCalculator';
+import { LearningBoard } from './components/LearningBoard';
 
 export default function App() {
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [consoleMode, setConsoleMode] = useState<ConsoleMode>('calculator');
 
   // Calculator State
   const [currentValue, setCurrentValue] = useState<string>('0');
@@ -31,6 +35,7 @@ export default function App() {
   const [activeOperator, setActiveOperator] = useState<OperationType | null>(null);
   const [waitingForOperand, setWaitingForOperand] = useState<boolean>(false);
   const [expression, setExpression] = useState<string>('');
+  const [parenMode, setParenMode] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // History State
@@ -43,15 +48,18 @@ export default function App() {
     soundManager.setSoundEnabled(next);
   };
 
-  // Download cientifica.py
+  // Download script corresponding to active console mode
   const handleDownloadScript = () => {
     soundManager.playKeyClick('number');
-    const content = pythonSourceFiles['calc_bit/cientifica.py'];
+    const isLearning = consoleMode === 'learning';
+    const content = isLearning
+      ? pythonSourceFiles['calc_bit/passo_a_passo.py']
+      : pythonSourceFiles['calc_bit/cientifica.py'];
     const blob = new Blob([content], { type: 'text/x-python;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'cientifica.py';
+    a.download = isLearning ? 'passo_a_passo.py' : 'cientifica.py';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -63,6 +71,12 @@ export default function App() {
     (digit: string) => {
       soundManager.playKeyClick('number');
       setError(null);
+
+      if (parenMode) {
+        setCurrentValue((prev) => prev + digit);
+        setExpression((prev) => prev + digit);
+        return;
+      }
 
       if (digit === '.') {
         if (waitingForOperand) {
@@ -85,17 +99,59 @@ export default function App() {
         }
       }
     },
-    [currentValue, waitingForOperand]
+    [currentValue, waitingForOperand, parenMode]
+  );
+
+  // Handle Parentheses '(' and ')'
+  const handleParenthesis = useCallback(
+    (paren: '(' | ')') => {
+      soundManager.playKeyClick('operator');
+      setError(null);
+
+      if (!parenMode) {
+        // Inicia modo de expressão com parênteses na calculadora
+        let baseExpr = '';
+        if (previousValue !== null && activeOperator) {
+          const sym = getOperatorSymbol(activeOperator);
+          baseExpr = waitingForOperand
+            ? `${formatPythonNumber(previousValue)} ${sym} ${paren}`
+            : `${formatPythonNumber(previousValue)} ${sym} ${currentValue}${paren}`;
+        } else if (currentValue !== '0' && !waitingForOperand) {
+          baseExpr = paren === '(' ? `${currentValue} * (` : `${currentValue})`;
+        } else {
+          baseExpr = paren;
+        }
+        setParenMode(true);
+        setPreviousValue(null);
+        setActiveOperator(null);
+        setWaitingForOperand(false);
+        setCurrentValue(baseExpr);
+        setExpression(baseExpr);
+      } else {
+        setCurrentValue((prev) => prev + paren);
+        setExpression((prev) => prev + paren);
+      }
+    },
+    [parenMode, previousValue, activeOperator, waitingForOperand, currentValue]
   );
 
   // Insert Mathematical Constant (pi or e)
-  const handleConstant = useCallback((constant: ConstantType) => {
-    soundManager.playKeyClick('number');
-    setError(null);
-    const val = constant === 'pi' ? PYTHON_CONSTANTS.PI : PYTHON_CONSTANTS.EULER;
-    setCurrentValue(Number(val.toFixed(8)).toString());
-    setWaitingForOperand(false);
-  }, []);
+  const handleConstant = useCallback(
+    (constant: ConstantType) => {
+      soundManager.playKeyClick('number');
+      setError(null);
+      const val = constant === 'pi' ? PYTHON_CONSTANTS.PI : PYTHON_CONSTANTS.EULER;
+      const formatted = Number(val.toFixed(8)).toString();
+      if (parenMode) {
+        setCurrentValue((prev) => prev + formatted);
+        setExpression((prev) => prev + formatted);
+        return;
+      }
+      setCurrentValue(formatted);
+      setWaitingForOperand(false);
+    },
+    [parenMode]
+  );
 
   // Execute binary operation (basic + scientific 2-operand)
   const executeCalculation = useCallback(
@@ -122,10 +178,17 @@ export default function App() {
   // Execute unary scientific operation immediately on currentValue
   const handleUnaryOperator = useCallback(
     (op: UnaryOperationType) => {
+      const fnName = getFunctionName(op);
+      if (parenMode) {
+        soundManager.playKeyClick('operator');
+        setCurrentValue((prev) => `${prev}${fnName}(`);
+        setExpression((prev) => `${prev}${fnName}(`);
+        return;
+      }
+
       const x = parseFloat(currentValue);
       if (isNaN(x)) return;
 
-      const fnName = getFunctionName(op);
       const pythonSnippet = `${fnName}(${formatPythonNumber(x)})`;
 
       try {
@@ -179,7 +242,7 @@ export default function App() {
         setHistory((prev) => [newRecord, ...prev]);
       }
     },
-    [currentValue]
+    [currentValue, parenMode]
   );
 
   // Handle Binary Operator
@@ -187,6 +250,15 @@ export default function App() {
     (nextOperator: OperationType) => {
       soundManager.playKeyClick('operator');
       setError(null);
+
+      if (parenMode) {
+        const opSym =
+          nextOperator === 'modulo' ? '%' : getOperatorSymbol(nextOperator);
+        setCurrentValue((prev) => `${prev} ${opSym} `);
+        setExpression((prev) => `${prev} ${opSym} `);
+        return;
+      }
+
       const inputValue = parseFloat(currentValue);
 
       if (previousValue === null) {
@@ -216,11 +288,43 @@ export default function App() {
       setActiveOperator(nextOperator);
       setWaitingForOperand(true);
     },
-    [currentValue, previousValue, activeOperator, waitingForOperand, executeCalculation]
+    [currentValue, previousValue, activeOperator, waitingForOperand, executeCalculation, parenMode]
   );
 
   // Equals
   const handleEquals = useCallback(() => {
+    if (parenMode) {
+      const report = resolverPassoAPasso(currentValue);
+      if (!report.sucesso || report.resultadoFinal === null) {
+        soundManager.playKeyClick('error');
+        setError(report.erro || 'Erro na expressão');
+        setParenMode(false);
+        setWaitingForOperand(true);
+        return;
+      }
+
+      soundManager.playKeyClick('equals');
+      const formattedRes = formatPythonNumber(report.resultadoFinal);
+      setExpression(`${currentValue} =`);
+      setCurrentValue(formattedRes);
+      setParenMode(false);
+      setWaitingForOperand(true);
+
+      const newRecord: CalculationRecord = {
+        id: Math.random().toString(36).substring(2, 9),
+        timestamp: new Date(),
+        operandA: report.resultadoFinal,
+        operandB: null,
+        operation: 'add',
+        operatorSymbol: '()',
+        result: report.resultadoFinal,
+        pythonSnippet: `resolver_passo_a_passo("${currentValue}") -> ${formattedRes}`,
+        expression: `${currentValue} =`,
+      };
+      setHistory((prev) => [newRecord, ...prev]);
+      return;
+    }
+
     if (activeOperator === null || previousValue === null) {
       soundManager.playKeyClick('equals');
       return;
@@ -283,7 +387,7 @@ export default function App() {
       setActiveOperator(null);
       setWaitingForOperand(true);
     }
-  }, [activeOperator, previousValue, currentValue, executeCalculation]);
+  }, [activeOperator, previousValue, currentValue, executeCalculation, parenMode]);
 
   // Clear All
   const handleClear = useCallback(() => {
@@ -292,6 +396,7 @@ export default function App() {
     setPreviousValue(null);
     setActiveOperator(null);
     setWaitingForOperand(false);
+    setParenMode(false);
     setExpression('');
     setError(null);
   }, []);
@@ -299,6 +404,18 @@ export default function App() {
   // Backspace
   const handleBackspace = useCallback(() => {
     soundManager.playKeyClick('number');
+    if (parenMode) {
+      if (currentValue.length > 1) {
+        const next = currentValue.slice(0, -1);
+        setCurrentValue(next);
+        setExpression(next);
+      } else {
+        setCurrentValue('0');
+        setExpression('');
+        setParenMode(false);
+      }
+      return;
+    }
     if (waitingForOperand || error) {
       setCurrentValue('0');
       setError(null);
@@ -309,29 +426,32 @@ export default function App() {
     } else {
       setCurrentValue('0');
     }
-  }, [waitingForOperand, error, currentValue]);
+  }, [waitingForOperand, error, currentValue, parenMode]);
 
   // Invert Sign (±)
   const handleToggleSign = useCallback(() => {
     soundManager.playKeyClick('number');
-    if (currentValue === '0' || error) return;
+    if (parenMode || currentValue === '0' || error) return;
     if (currentValue.startsWith('-')) {
       setCurrentValue((prev) => prev.slice(1));
     } else {
       setCurrentValue((prev) => '-' + prev);
     }
-  }, [currentValue, error]);
+  }, [currentValue, error, parenMode]);
 
   // Restore history record
   const handleSelectRecord = (record: CalculationRecord) => {
     if (record.result !== null) {
+      setParenMode(false);
       setCurrentValue(formatPythonNumber(record.result));
       setExpression(record.expression);
     }
   };
 
-  // Global Keyboard Navigation
+  // Global Keyboard Navigation (when in calculator mode)
   useEffect(() => {
+    if (consoleMode !== 'calculator') return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         document.activeElement?.tagName === 'INPUT' ||
@@ -346,6 +466,9 @@ export default function App() {
       } else if (e.key === '.' || e.key === ',') {
         e.preventDefault();
         handleDigit('.');
+      } else if (e.key === '(' || e.key === ')') {
+        e.preventDefault();
+        handleParenthesis(e.key);
       } else if (e.key === '+') {
         e.preventDefault();
         handleOperator('add');
@@ -378,39 +501,59 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleDigit, handleOperator, handleEquals, handleBackspace, handleClear]);
+  }, [
+    consoleMode,
+    handleDigit,
+    handleParenthesis,
+    handleOperator,
+    handleEquals,
+    handleBackspace,
+    handleClear,
+  ]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       <Header
+        consoleMode={consoleMode}
+        onSelectConsoleMode={setConsoleMode}
         onDownloadScript={handleDownloadScript}
         soundEnabled={soundEnabled}
         onToggleSound={handleToggleSound}
       />
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex items-center justify-center">
-        <PixelCalculator
-          currentValue={currentValue}
-          previousValue={previousValue}
-          activeOperator={activeOperator}
-          expression={expression}
-          error={error}
-          onDigit={handleDigit}
-          onOperator={handleOperator}
-          onUnaryOperator={handleUnaryOperator}
-          onConstant={handleConstant}
-          onEquals={handleEquals}
-          onClear={handleClear}
-          onBackspace={handleBackspace}
-          onToggleSign={handleToggleSign}
-          history={history}
-          onSelectRecord={handleSelectRecord}
-        />
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-center">
+        {consoleMode === 'calculator' ? (
+          <PixelCalculator
+            currentValue={currentValue}
+            previousValue={previousValue}
+            activeOperator={activeOperator}
+            expression={expression}
+            error={error}
+            onDigit={handleDigit}
+            onParenthesis={handleParenthesis}
+            onOperator={handleOperator}
+            onUnaryOperator={handleUnaryOperator}
+            onConstant={handleConstant}
+            onEquals={handleEquals}
+            onClear={handleClear}
+            onBackspace={handleBackspace}
+            onToggleSign={handleToggleSign}
+            history={history}
+            onSelectRecord={handleSelectRecord}
+          />
+        ) : (
+          <LearningBoard />
+        )}
       </main>
 
       <footer className="border-t-4 border-[#12111c] py-4 text-center text-xs text-[#7d799b] bg-[#141320] font-pixel">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div>CALC BIT &middot; CALCULADORA BÁSICA &amp; CIENTÍFICA</div>
+          <div>
+            CALC BIT &middot;{' '}
+            {consoleMode === 'calculator'
+              ? 'CONSOLE PORTÁTIL BÁSICO & CIENTÍFICO'
+              : 'MODO APRENDIZADO (JOY-CON + LOUSA PEMDAS)'}
+          </div>
           <div className="text-[#a5a1c2] font-arcade text-[10px]">
             PYTHON 3 &middot; 16-BIT EDITION
           </div>
